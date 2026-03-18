@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Trophy, RotateCcw, BarChart3, Share2, Star, Target, Zap } from "lucide-react";
+import { Trophy, RotateCcw, BarChart3, Share2, Star, Target, Zap, AlertCircle, Lightbulb } from "lucide-react";
 
 function getGrade(score, total) {
   const pct = (score / total) * 100;
@@ -12,9 +12,31 @@ function getGrade(score, total) {
   return { emoji: "🙏", text: "¡No te rindas!", color: "text-accent" };
 }
 
-export default function ResultsScreen({ score, totalQuestions, correctCount, onPlayAgain, onShowStats }) {
+function getMotivationalMessage(correctCount, totalQuestions) {
+  const percentage = (correctCount / totalQuestions) * 100;
+  
+  if (percentage === 100) {
+    return "¡Has dominado completamente los libros de la Biblia! Tu dedicación es admirable. 🎉";
+  }
+  if (percentage >= 90) {
+    return "¡Increíble trabajo! Estás muy cerca de la perfección. Sigue así. 🚀";
+  }
+  if (percentage >= 80) {
+    return "¡Vas muy bien! Ya conoces la mayoría de los libros. ¡Vas aprendiendo! 📚";
+  }
+  if (percentage >= 70) {
+    return "¡Buen progreso! Repasa los que fallaste y mejorarás rápidamente. 💪";
+  }
+  if (percentage >= 50) {
+    return "¡Vas en el camino correcto! Cada intento te acerca a dominar la Biblia. 📖";
+  }
+  return "¡No te rindas! Recuerda que la práctica hace al maestro. ¡Sigue aprendiendo! 🎯";
+}
+
+export default function ResultsScreen({ score, totalQuestions, correctCount, incorrectAnswers = [], onPlayAgain, onShowStats }) {
   const maxScore = totalQuestions * 5;
   const grade = getGrade(score, maxScore);
+  const motivationalMessage = getMotivationalMessage(correctCount, totalQuestions);
 
   const appUrl = window.location.origin + window.location.pathname;
 
@@ -78,6 +100,68 @@ export default function ResultsScreen({ score, totalQuestions, correctCount, onP
           </div>
         </div>
       </div>
+
+      {/* Motivational Message */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2"
+      >
+        <div className="flex items-start gap-3">
+          <Lightbulb className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
+          <p className="text-sm font-semibold text-blue-900">{motivationalMessage}</p>
+        </div>
+      </motion.div>
+
+      {/* Error Summary */}
+      {incorrectAnswers.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-red-50 border border-red-200 rounded-2xl p-5 space-y-4"
+        >
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-red-600" />
+            <h3 className="font-bold text-red-900">Recuerda la próxima vez:</h3>
+          </div>
+          
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {incorrectAnswers.map((error, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 + index * 0.05 }}
+                className="bg-white rounded-lg p-3 border border-red-100 text-left text-sm"
+              >
+                <p className="font-semibold text-red-700 mb-1">{error.question}</p>
+                <div className="space-y-1">
+                  <p className="text-red-600">
+                    <span className="font-medium">❌ Respondiste:</span> {error.userAnswer}
+                  </p>
+                  <p className="text-emerald-600">
+                    <span className="font-medium">✅ Correcta:</span> {error.correctAnswer}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Final Message */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="text-center"
+      >
+        <p className="text-lg font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
+          ¡Vas muy bien! ¡Sigue aprendiendo! 📖
+        </p>
+      </motion.div>
 
       {/* Action Buttons */}
       <div className="grid gap-3">

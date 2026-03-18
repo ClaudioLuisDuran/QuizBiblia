@@ -41,6 +41,7 @@ export default function Home() {
   const [selected, setSelected] = useState(null);
   const [answered, setAnswered] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [incorrectAnswers, setIncorrectAnswers] = useState([]);
   const autoAdvanceRef = useRef(null);
 
   // Stable handleNext using refs to avoid stale closures
@@ -69,10 +70,20 @@ export default function Home() {
     setSelected(option);
     setAnswered(true);
 
-    const isCorrect = option === questions[currentIndexRef.current].correctAnswer;
+    const currentQuestion = questions[currentIndexRef.current];
+    const isCorrect = option === currentQuestion.correctAnswer;
+    
     if (isCorrect) {
       setScore(prev => prev + POINTS_PER_CORRECT);
       setCorrectCount(prev => prev + 1);
+    } else {
+      // Guardar respuesta incorrecta
+      setIncorrectAnswers(prev => [...prev, {
+        question: currentQuestion.question,
+        userAnswer: option,
+        correctAnswer: currentQuestion.correctAnswer,
+        type: currentQuestion.type
+      }]);
     }
 
     const delay = isCorrect ? AUTO_ADVANCE_CORRECT : AUTO_ADVANCE_WRONG;
@@ -99,6 +110,7 @@ export default function Home() {
     setCorrectCount(0);
     setSelected(null);
     setAnswered(false);
+    setIncorrectAnswers([]);
     setScreen("quiz");
   }, []);
 
@@ -215,6 +227,7 @@ export default function Home() {
               score={score}
               totalQuestions={QUESTIONS_PER_GAME}
               correctCount={correctCount}
+              incorrectAnswers={incorrectAnswers}
               onPlayAgain={startGame}
               onShowStats={() => setScreen("stats")}
             />
